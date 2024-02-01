@@ -292,8 +292,8 @@ uint32_t BaseMeta::compute_idx(char* superblock, char* block, size_t sc_idx) {
             idx = diff / block_size;				\
             break;
 #define SIZE_CLASS_bin_no(index, block_size)
-#define SC(index, lg_grp, lg_delta, ndelta, psz, bin, pgs, lg_delta_lookup) \
-        SIZE_CLASS_bin_##bin((index + 1), ((1U << lg_grp) + (ndelta << lg_delta)))
+#define SC(index, lg_grp, lg_delta, ndelta, psz, bin, pgs, lg_delta_lookup, no_cnt) \
+        SIZE_CLASS_bin_##bin((index - no_cnt + 1), ((1U << lg_grp) + (ndelta << lg_delta)))
         SIZE_CLASSES
         default:
             assert(false);

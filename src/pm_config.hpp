@@ -86,7 +86,7 @@ const uint64_t PAGE_MASK = (uint64_t)PAGESIZE - 1;
 const int LARGE = 249; // tag indicating the block is large
 const int SMALL = 250; // tag indicating the block is small
 // number of size classes; idx 0 reserved for large size classes
-const int MAX_SZ_IDX = 40;
+const int MAX_SZ_IDX = 37;
 const uint64_t SC_MASK = (1ULL << 6) - 1;
 // last size covered by a size class
 // allocations with size > MAX_SZ are not covered by a size class

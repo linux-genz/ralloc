@@ -15,15 +15,15 @@
 #include "SizeClass.hpp"
 
 // here we use same size for sbs in different sizeclass for easy management
-#define SIZE_CLASS_bin_yes(block_size, pages) \
-	{ block_size, SBSIZE, SBSIZE/block_size, SBSIZE/block_size },
+#define SIZE_CLASS_bin_yes(block_size, pages)			\
+    { block_size, SBSIZE, SBSIZE/block_size, SBSIZE/block_size },
 /* #define SIZE_CLASS_bin_yes(block_size, pages) \
  	{ block_size, pages * PAGESIZE, 0, 0 },
  	*/
 #define SIZE_CLASS_bin_no(block_size, pages)
 
-#define SC(index, lg_grp, lg_delta, ndelta, psz, bin, pgs, lg_delta_lookup) \
-	SIZE_CLASS_bin_##bin(((1U << lg_grp) + (ndelta << lg_delta)), pgs)
+#define SC(index, lg_grp, lg_delta, ndelta, psz, bin, pgs, lg_delta_lookup, no_cnt) \
+    SIZE_CLASS_bin_##bin(((1U << lg_grp) + (ndelta << lg_delta)), pgs)
 
 // this is reconstructed in every execution
 SizeClass ralloc::sizeclass;
