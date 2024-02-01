@@ -81,13 +81,13 @@ $(OBJ)/%.o: $(SRC)/%.cpp
 
 benchmark_pm: threadtest_test sh6bench_test larson_test prod-con_test #cache-scratch_test cache-thrash_test
 
-threadtest_test: ./benchmark/threadtest.cpp libralloc.a
+threadtest_test: ./benchmark/threadtest.cpp libralloc.so
 	$(CXX) -I $(SRC) -I ./benchmark -o $@ $^ $(CXXFLAGS) $(LIBS) 
 
-sh6bench_test: ./benchmark/sh6bench.cpp libralloc.a
+sh6bench_test: ./benchmark/sh6bench.cpp libralloc.so
 	$(CXX) -I $(SRC) -I ./benchmark -o $@ $^ $(CXXFLAGS) $(LIBS) 
 
-larson_test: ./benchmark/larson.cpp libralloc.a
+larson_test: ./benchmark/larson.cpp libralloc.so
 	$(CXX) -I $(SRC) -I ./benchmark -o $@ $^ $(CXXFLAGS) $(LIBS) 
 
 # # Active false sharing
@@ -98,14 +98,17 @@ larson_test: ./benchmark/larson.cpp libralloc.a
 # cache-scratch_test: ./benchmark/cache-scratch.cpp libralloc.a
 # 	$(CXX) -I $(SRC) -I ./benchmark -o $@ $^ $(CXXFLAGS) $(LIBS) -L. -lralloc
 
-prod-con_test: ./benchmark/prod-con.cpp libralloc.a
+prod-con_test: ./benchmark/prod-con.cpp libralloc.so
 	$(CXX) -I $(SRC) -I ./benchmark -o $@ $^ $(CXXFLAGS) $(LIBS) 
 
 libralloc.a: $(OBJECTS)
 	ar -rcs $@ $^
 
+libralloc.so: $(OBJECTS)
+	$(CXX) -o $@ $^ -shared
+
 clean:
 	rm -f *_test
 	rm -rf ../obj/*
-	rm -f libralloc.a
+	rm -f libralloc.a libralloc.so
 	rm -rf /mnt/pmem/*
