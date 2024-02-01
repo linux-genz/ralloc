@@ -28,7 +28,9 @@
 // Uncomment to enable durable linearizability
 #define DUR_LIN
 
-#ifdef SHM_SIMULATING
+#ifdef ARM64
+  #define PWB_IS_ARM64
+#elif defined(SHM_SIMULATING)
   #define PWB_IS_CLFLUSH
 #else
   #define PWB_IS_CLWB
@@ -47,6 +49,9 @@
   #elif defined(PWB_IS_PCM)
     #define FLUSH(addr) emulate_latency_ns(340)
     #define FLUSHFENCE emulate_latency_ns(500)
+  #elif defined(PWB_IS_ARM64)
+    #define FLUSH(addr) asm volatile ("dc cvac, %0" :: "r"(addr))
+    #define FLUSHFENCE asm volatile ("dmb ishst" ::: "memory")
   #else
     #error "Please define what PWB is."
   #endif /* PWB_IS_? */
@@ -60,6 +65,8 @@
  * https://github.com/pramalhe/Romulus
  */
 
+#ifdef PWB_IS_PCM
+// Revisit: arm64 has no rdtsc instruction
 static inline unsigned long long asm_rdtsc(void)
 {
     unsigned hi, lo;
@@ -86,5 +93,6 @@ static inline void emulate_latency_ns(int ns) {
         stop = asm_rdtsc();
     } while (stop - start < cycles);
 }
+#endif
 
 #endif

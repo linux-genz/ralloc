@@ -96,24 +96,25 @@ unsigned uMaxBlockSize = 1000;
 unsigned uMinBlockSize = 1;
 unsigned long ulCallCount = 1000;
 
-unsigned long promptAndRead(char *msg, unsigned long defaultVal, char fmtCh);
+unsigned long promptAndRead(const char *msg, unsigned long defaultVal, char fmtCh);
 
 unsigned uThreadCount = 8;
-ThreadID RunThread(void (*fn)(void *), void *arg);
+ThreadID RunThread(void *(*fn)(void *), void *arg);
 void WaitForThreads(ThreadID[], unsigned);
 int GetNumProcessors(void);
 
 
-
+#ifdef RDTSC
 inline uint64_t rdtsc(void) {
 	unsigned int hi, lo;
 	__asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
 	return ((uint64_t) lo) | (((uint64_t) hi) << 32);
 }
+#endif
 
 const int64_t kCPUSpeed = 2000000000;
 
-void doBench(void *);
+void *doBench(void *);
 
 pthread_barrier_t barrier;
 
@@ -123,8 +124,10 @@ int main(int argc, char *argv[])
 	time_t startTime;
 	double elapsedTime, cpuTime;
 
+#ifdef RDTSC
 	uint64_t start_;
 	uint64_t end_;
+#endif
 
 	setbuf(stdout, NULL);  /* turn off buffering for output */
 
@@ -143,22 +146,24 @@ int main(int argc, char *argv[])
 
 
 	unsigned i;
-	int *threadArg = malloc(uThreadCount*sizeof(int));
+	int *threadArg = (int *)malloc(uThreadCount*sizeof(int));
 	ThreadID *tids;
 
 	uThreadCount = (int)promptAndRead("threads", GetNumProcessors(), 'u');
 	pthread_barrier_init(&barrier,NULL,uThreadCount);
 	pm_init();
 
-	printf("\nparams: call count: %u, min size: %u, max size: %u, threads: %u\n", ulCallCount, uMinBlockSize, uMaxBlockSize, uThreadCount);
+	printf("\nparams: call count: %lu, min size: %u, max size: %u, threads: %u\n", ulCallCount, uMinBlockSize, uMaxBlockSize, uThreadCount);
 
 	if (uThreadCount < 1)
 		uThreadCount = 1;
 	ulCallCount /= uThreadCount;
-	if ((tids = malloc(sizeof(ThreadID) * uThreadCount)) != NULL){
+	if ((tids = (ThreadID *)malloc(sizeof(ThreadID) * uThreadCount)) != NULL){
 		startCPU = clock();
 		startTime = time(NULL);
+#ifdef RDTSC
 		start_ = rdtsc();
+#endif
 		for (i = 0;  i < uThreadCount;  i++){
 			threadArg[i] = i;
 			if (THREAD_EQ(tids[i] = 
@@ -173,7 +178,9 @@ int main(int argc, char *argv[])
 	if (threadArg)
 		free(threadArg);
 
+#ifdef RDTSC
 	end_ = rdtsc();
+#endif
 	elapsedTime = difftime(time(NULL), startTime);
 	cpuTime = (double)(clock()-startCPU) / (double)CLOCKS_PER_SEC;
 
@@ -184,7 +191,9 @@ int main(int argc, char *argv[])
 			  uThreadCount,
 			  elapsedTime, cpuTime);
 
+#ifdef RDTSC
 	fprintf(fout, "\nrdtsc time: %f\n", ((double)end_ - (double)start_)/kCPUSpeed);
+#endif
 
 	if (fin != stdin)
 		fclose(fin);
@@ -194,7 +203,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void doBench(void *arg)
+void *doBench(void *arg)
 { 
 #ifdef THREAD_PINNING
     int task_id;
@@ -219,12 +228,12 @@ void doBench(void *arg)
     if (!CPU_ISSET(core_id, &cpuset)){
    	fprintf(stderr, "WARNING: thread aiming for cpu %d is pinned elsewhere.\n", core_id);	 
     } else {
-    	// fprintf(stderr, "thread pinning on cpu %d succeeded.\n", core_id);
+	// fprintf(stderr, "thread %d pinning on cpu %d succeeded.\n", task_id, core_id);
     }
 	pthread_barrier_wait(&barrier);
 
 #endif
-	char **memory = pm_malloc(ulCallCount * sizeof(void *));
+	char **memory = (char **)pm_malloc(ulCallCount * sizeof(void *));
 	int	size_base, size, iterations;
 	int	repeat = ulCallCount;
 	char **mp = memory;
@@ -302,9 +311,10 @@ void doBench(void *arg)
 	}
 
 	pm_free(memory);
+	return 0;
 }
 
-unsigned long promptAndRead(char *msg, unsigned long defaultVal, char fmtCh)
+unsigned long promptAndRead(const char *msg, unsigned long defaultVal, char fmtCh)
 {
 	char *arg = NULL, *err;
 	unsigned long result;
@@ -327,7 +337,7 @@ unsigned long promptAndRead(char *msg, unsigned long defaultVal, char fmtCh)
 
 /*** System-Specific Interfaces ***/
 
-ThreadID RunThread(void (*fn)(void *), void *arg)
+ThreadID RunThread(void *(*fn)(void *), void *arg)
 {
 	ThreadID result = THREAD_NULL;
 	

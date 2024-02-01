@@ -17,7 +17,11 @@
 
 #ifdef THREAD_PINNING
 // current pinning map.
+#ifdef ORTHUS
+#define PINNING_MAP pinning_map_1x4c
+#else
 #define PINNING_MAP pinning_map_2x20a_1
+#endif
 // thread pinning strategy for 2x20a:
 // 1 thread per core on one socket -> hyperthreads on the same socket -> cross socket.
 static const int pinning_map_2x20a_1[] = {
@@ -50,10 +54,20 @@ static const int pinning_map_2x10c[] = {
  	1,3,5,7,9,11,13,15,17,19,
  	21,23,25,27,29,31,33,35,37,39};
 
+// thread pinning strategy for ORTHUS
+// 1 thread per core, 4 cores total
+static const int pinning_map_1x4c[] = {
+	0,1,2,3,
+	0,1,2,3};
+
 #endif
 volatile static int init_count = 0;
 
+#ifdef ORTHUS
+#define REGION_SIZE (2*1024*1024*1024ULL - (16384+1056768))  // for orthus SHM
+#else
 #define REGION_SIZE (6*1024*1024*1024ULL + 24)
+#endif
 
 
 #ifdef RALLOC
