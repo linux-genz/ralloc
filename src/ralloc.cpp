@@ -155,6 +155,23 @@ void* RP_calloc(size_t num, size_t size){
     return ptr;
 }
 
+char* RP_strdup(const char* s){
+    size_t len = strlen(s);
+    char* tgt = (char *)RP_malloc(len + 1);
+    if (tgt)
+	strcpy(tgt, s);
+    return tgt;
+}
+
+char* RP_strndup(const char* s, size_t len){
+    char* tgt = (char *)RP_malloc(len + 1);
+    if (tgt) {
+	strncpy(tgt, s, len);
+	tgt[len] = '\0';
+    }
+    return tgt;
+}
+
 int RP_in_prange(void* ptr){
     if(_rgs->in_range(SB_IDX,ptr)) return 1;
     else return 0;

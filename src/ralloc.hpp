@@ -9,6 +9,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #ifdef __cplusplus
 /* return 1 if it's a restart, otherwise 0. */
@@ -41,6 +42,8 @@ void* RP_set_root(void* ptr, uint64_t i);
 size_t RP_malloc_size(void* ptr);
 void* RP_calloc(size_t num, size_t size);
 void* RP_realloc(void* ptr, size_t new_size);
+char* RP_strdup(const char* s);
+char* RP_strndup(const char* s, size_t n);
 /* return 1 if ptr is in range of Ralloc heap, otherwise 0. */
 int RP_in_prange(void* ptr);
 /* return 1 if the query is invalid, otherwise 0 and write start and end addr to the parameter. */
