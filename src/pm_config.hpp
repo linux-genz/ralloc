@@ -53,8 +53,12 @@ enum RegionIndex : int {
   #define DBG_PRINT(msg, ...)
 #endif
 
+// FABRIC_MEM is for systems connected to a memory-semantic fabric
 /* SHM_SIMULATING switches to compatible mode for machines without real persistent memory. */
-#ifdef SHM_SIMULATING
+#ifdef FABRIC_MEM
+  #define HEAPFILE_PREFIX "/mnt/shm/"
+  #define MMAP_FLAG MAP_SHARED_VALIDATE // Revisit: || MAP_SYNC doesn't work
+#elif defined(SHM_SIMULATING)
   #define HEAPFILE_PREFIX "/dev/shm/"
   #define MMAP_FLAG MAP_SHARED
 #else

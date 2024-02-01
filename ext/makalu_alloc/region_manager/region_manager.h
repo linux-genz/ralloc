@@ -28,7 +28,11 @@
 #include "../src/internal_include/pfence_util.h"
 
 #define FILESIZE 5*1024*1024*1024ULL + 24
+#ifdef FABRIC_MEM
+#define HEAPFILE "/mnt/shm/gc_heap.dat"
+#else
 #define HEAPFILE "/dev/shm/gc_heap.dat"
+#endif
 
 #ifdef PWB_IS_CLFLUSH
     #define CLFLUSH(addr) \

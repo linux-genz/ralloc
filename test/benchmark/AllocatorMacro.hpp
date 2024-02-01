@@ -82,7 +82,9 @@ volatile static int init_count = 0;
   #include <string.h>
   inline void* pm_malloc(size_t s) { return MAK_malloc(s); }
   inline void pm_free(void* p) { MAK_free(p);}
-  #ifdef SHM_SIMULATING
+  #ifdef FABRIC_MEM
+    #define HEAP_FILE "/mnt/shm/gc_heap_wcai6"
+  #elif defined(SHM_SIMULATING)
     #define HEAP_FILE "/dev/shm/gc_heap_wcai6"
   #else
     #define HEAP_FILE "/mnt/pmem/gc_heap_wcai6"
@@ -178,7 +180,9 @@ volatile static int init_count = 0;
 #elif defined(PMDK) // MAKALU ends
 
   #include <libpmemobj.h>
-  #ifdef SHM_SIMULATING
+  #ifdef FABRIC_MEM
+    #define HEAP_FILE "/mnt/shm/pmdk_heap_wcai6"
+  #elif defined(SHM_SIMULATING)
     #define HEAP_FILE "/dev/shm/pmdk_heap_wcai6"
   #else
     #define HEAP_FILE "/mnt/pmem/pmdk_heap_wcai6"

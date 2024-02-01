@@ -27,7 +27,11 @@
 #include <thread>
 
 #define FILESIZE 5*1024*1024*1024ULL + 24
+#ifdef FABRIC_MEM
+#define HEAPFILE "/mnt/shm/gc_heap_wcai6"
+#else
 #define HEAPFILE "/dev/shm/gc_heap_wcai6"
+#endif
 
 static char *base_addr = NULL;
 static char *curr_addr = NULL;
