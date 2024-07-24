@@ -111,8 +111,10 @@ extern "C" void * worker (void * arg)
   Foo ** a;
   a = new Foo * [nobjects / nthreads];
   for (j = 0; j < niterations; j++) {
-
-    // printf ("%d\n", j);
+#ifdef DEBUG
+    if (j % 100000 == 0)
+      printf ("thread %d, j=%d\n", task_id, j);
+#endif
     for (i = 0; i < (nobjects / nthreads); i ++) {
       a[i] = new Foo[sz];
       for (volatile int d = 0; d < work; d++) {

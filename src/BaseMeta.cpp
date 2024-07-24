@@ -250,11 +250,14 @@ BaseMeta::BaseMeta() noexcept
 inline void* BaseMeta::expand_get_large_sb(size_t sz){
     void* ret = nullptr;
     int res = 0;
+    DBG_PRINT("expand sb space for large sb allocation, sz=%lu", sz);
     while(res == 0) {
         res = _rgs->expand(SB_IDX,&ret,PAGESIZE, sz);
-        assert(res != -1 && "space runs out!");
+        if (res == -1) {
+	    DBG_PRINT("sb space runs out!");
+	    return ret;
+	}
     }
-    DBG_PRINT("expand sb space for large sb allocation\n");
     
     Descriptor* desc = desc_lookup(ret);
     new (desc) Descriptor();
@@ -657,10 +660,12 @@ inline void* BaseMeta::alloc_large_block(size_t sz){
 }
 
 void* BaseMeta::do_malloc(size_t size){
+    char* ptr;
+
     if (UNLIKELY(size > MAX_SZ)) {
         // large block allocation
         size_t sbs = round_up(size, SBSIZE);//round size up to multiple of SBSIZE
-        char* ptr = (char*)alloc_large_block(sbs);
+        ptr = (char*)alloc_large_block(sbs);
         assert(ptr);
         Descriptor* desc = desc_lookup(ptr);
 
@@ -678,7 +683,7 @@ void* BaseMeta::do_malloc(size_t size){
         FLUSH(&desc);
         FLUSHFENCE;
 
-        DBG_PRINT("large, ptr: %p", ptr);
+        DBG_PRINT("large (%lu), ptr: %p", size, ptr);
         return (void*)ptr;
     }
 
@@ -690,8 +695,11 @@ void* BaseMeta::do_malloc(size_t size){
     if (UNLIKELY(cache->get_block_num() == 0))
         fill_cache(sc_idx, cache);
 
-    return cache->pop_block();
+    ptr = cache->pop_block();
+    DBG_PRINT("small (%lu), ptr: %p", size, ptr);
+    return (void*)ptr;
 }
+
 void BaseMeta::do_free(void* ptr){
     if(ptr==nullptr) return;
     assert(_rgs->in_range(SB_IDX,ptr));
@@ -704,6 +712,7 @@ void BaseMeta::do_free(void* ptr){
 
     // large allocation case
     if (UNLIKELY(!sc_idx)) {
+        DBG_PRINT("large (%u), ptr: %p", desc->block_size, ptr);
         char* superblock = desc->superblock;
         // free superblock
         large_sb_retire(superblock, desc->block_size);
@@ -717,6 +726,7 @@ void BaseMeta::do_free(void* ptr){
     if (UNLIKELY(cache->get_block_num() >= sc->cache_block_num))
         flush_cache(sc_idx, cache);
 
+    DBG_PRINT("small (%u), ptr: %p", desc->block_size, ptr);
     cache->push_block((char*)ptr);
 }
 

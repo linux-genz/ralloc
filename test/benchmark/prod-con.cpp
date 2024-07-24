@@ -85,6 +85,8 @@ void * producer (void * arg)
 			volatile char ch = obj[k];
 			ch++;
 		}
+		if (i % 100000 == 0)
+		  printf("thread %d push %d\n", task_id, i);
 		// push to msq
 		w1.msq->enqueue(obj, 0);
 	}
@@ -127,6 +129,8 @@ void * consumer (void * arg)
 		// pop from msq
 		auto obj = w1.msq->dequeue(1);
 		if(obj) {
+			if (i % 100000 == 0)
+			    printf("thread %d pop %d\n", task_id, i);
 			// deallocate it if not null
 			pm_free(obj.value());
 			i++;

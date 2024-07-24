@@ -51,7 +51,7 @@
 
 //mmap file
 void RegionManager::__map_persistent_region(){
-    DBG_PRINT("Creating a new persistent region...\n");
+    DBG_PRINT("Creating a new persistent region %s ...", HEAPFILE.c_str());
     int fd;
     fd  = open(HEAPFILE.c_str(), O_RDWR | O_CREAT | O_TRUNC,
                 S_IRUSR | S_IWUSR);
@@ -78,12 +78,12 @@ void RegionManager::__map_persistent_region(){
     FLUSH(curr_addr_ptr);
     FLUSH((uint64_t*)((size_t)base_addr + 2*sizeof(atomic_pptr<char>)));
     FLUSHFENCE;
-    DBG_PRINT("Addr: %p\n", addr);
-    DBG_PRINT("Base_addr: %p\n", base_addr);
+    DBG_PRINT("Addr: %p", addr);
+    DBG_PRINT("Base_addr: %p", base_addr);
     DBG_PRINT("Current_addr: %p\n", curr_addr_ptr->load());
 }
 void RegionManager::__remap_persistent_region(){
-    DBG_PRINT("Remapping the persistent region...\n");
+    DBG_PRINT("Remapping the persistent region %s ...", HEAPFILE.c_str());
     int fd;
     fd = open(HEAPFILE.c_str(), O_RDWR,
                 S_IRUSR | S_IWUSR);
@@ -105,13 +105,13 @@ void RegionManager::__remap_persistent_region(){
     base_addr = (char*) addr;
     curr_addr_ptr = (atomic_pptr<char>*)base_addr;
     assert(*(uint64_t*)((size_t)base_addr + 2*sizeof(atomic_pptr<char>)) == FILESIZE);
-    DBG_PRINT("Addr: %p\n", addr);
-    DBG_PRINT("Base_addr: %p\n", base_addr);
+    DBG_PRINT("Addr: %p", addr);
+    DBG_PRINT("Base_addr: %p", base_addr);
     DBG_PRINT("Curr_addr: %p\n", curr_addr_ptr->load());
 }
 
 void RegionManager::__map_transient_region(){
-    DBG_PRINT("Creating a new transient region...\n");
+    DBG_PRINT("Creating a new transient region %s ...", HEAPFILE.c_str());
     int fd;
     fd  = open(HEAPFILE.c_str(), O_RDWR | O_CREAT | O_TRUNC,
                 S_IRUSR | S_IWUSR);
@@ -139,12 +139,12 @@ void RegionManager::__map_transient_region(){
     FLUSH(curr_addr_ptr);
     FLUSH((uint64_t*)((size_t)base_addr + 2*sizeof(atomic_pptr<char>)));
     FLUSHFENCE;
-    DBG_PRINT("Addr: %p\n", addr);
-    DBG_PRINT("Base_addr: %p\n", base_addr);
+    DBG_PRINT("Addr: %p", addr);
+    DBG_PRINT("Base_addr: %p", base_addr);
     DBG_PRINT("Current_addr: %p\n", curr_addr_ptr->load());
 }
 void RegionManager::__remap_transient_region(){
-    DBG_PRINT("Remapping the transient region...\n");
+    DBG_PRINT("Remapping the transient region %s ...", HEAPFILE.c_str());
     int fd;
     fd = open(HEAPFILE.c_str(), O_RDWR,
                 S_IRUSR | S_IWUSR);
@@ -167,8 +167,8 @@ void RegionManager::__remap_transient_region(){
     base_addr = (char*) addr;
     curr_addr_ptr = (atomic_pptr<char>*)base_addr;
     assert(*(uint64_t*)((size_t)base_addr + 2*sizeof(atomic_pptr<char>)) == FILESIZE);
-    DBG_PRINT("Addr: %p\n", addr);
-    DBG_PRINT("Base_addr: %p\n", base_addr);
+    DBG_PRINT("Addr: %p", addr);
+    DBG_PRINT("Base_addr: %p", base_addr);
     DBG_PRINT("Curr_addr: %p\n", curr_addr_ptr->load());
 }
 
@@ -177,7 +177,7 @@ void RegionManager::__close_persistent_region(){
     FLUSHFENCE;
     FLUSH(curr_addr_ptr); 
     FLUSHFENCE;
-    DBG_PRINT("At the end current addr: %p\n", curr_addr_ptr->load());
+    DBG_PRINT("At the end %s current addr: %p", HEAPFILE.c_str(), curr_addr_ptr->load());
 
     unsigned long space_used = ((unsigned long) curr_addr_ptr->load() 
          - (unsigned long) base_addr);
@@ -196,7 +196,7 @@ void RegionManager::__close_transient_region(){
     FLUSH(curr_addr_ptr);
     FLUSHFENCE;
 
-    DBG_PRINT("At the end current addr: %p\n", curr_addr);
+    DBG_PRINT("At the end %s current addr: %p", HEAPFILE.c_str(), curr_addr);
 
     unsigned long space_used = ((unsigned long) curr_addr 
          - (unsigned long) base_addr);
@@ -238,8 +238,8 @@ int RegionManager::__nvm_region_allocator(void** memptr, size_t alignment, size_
     res = new_curr_addr;
     next = new_curr_addr + size;
     if (next > base_addr + FILESIZE){
-        printf("\n----Region Manager: out of space in mmaped file-----\nCurr:%p\nBase:%p\n",res,base_addr);
-        return -1;
+        printf("\n----Region Manager: out of space in mmaped file %s-----\nCurr:%p\nBase:%p\n", HEAPFILE.c_str(), res,base_addr);
+        return -2;
     }
     new_curr_addr = next;
     FLUSH(curr_addr_ptr);
@@ -272,7 +272,7 @@ int RegionManager::__try_nvm_region_allocator(void** memptr, size_t alignment, s
     res = new_curr_addr;
     next = new_curr_addr + size;
     if (next > base_addr + FILESIZE){
-        printf("\n----Region Manager: out of space in mmaped file-----\n");
+        printf("\n----Region Manager: out of space in mmaped file %s-----\n", HEAPFILE.c_str());
         return -1;
     }
     new_curr_addr = next;
