@@ -253,7 +253,7 @@ inline void* BaseMeta::expand_get_large_sb(size_t sz){
     DBG_PRINT("expand sb space for large sb allocation, sz=%lu", sz);
     while(res == 0) {
         res = _rgs->expand(SB_IDX,&ret,PAGESIZE, sz);
-        if (res == -1) {
+        if (res == -2) {
 	    DBG_PRINT("sb space runs out!");
 	    return ret;
 	}
