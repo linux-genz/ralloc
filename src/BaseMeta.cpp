@@ -148,13 +148,13 @@ inline bool AtomicCrossPtrCnt<T,idx>::compare_exchange_strong(ptr_cnt<T>& expect
     return ret;
 }
 
-void BaseMeta::set_dirty(){
+void BaseMeta::set_dirty(){  // Revisit: does not work cross-process
     // this must be called AFTER is_dirty
     int s = pthread_mutex_trylock(&dirty_mtx);
     assert(s!=EOWNERDEAD&&"previous apps died! call is_dirty first!");
 }
 
-bool BaseMeta::is_dirty(){
+bool BaseMeta::is_dirty(){  // Revisit: does not work cross-process
     int s = pthread_mutex_trylock(&dirty_mtx);
     switch(s){
     case EOWNERDEAD:
@@ -177,7 +177,7 @@ bool BaseMeta::is_dirty(){
     }// switch(s)
 }
 
-void BaseMeta::set_clean(){
+void BaseMeta::set_clean(){  // Revisit: does not work cross-process
     pthread_mutex_unlock(&dirty_mtx);
 }
 

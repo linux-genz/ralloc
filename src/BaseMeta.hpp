@@ -241,10 +241,16 @@ static_assert(sizeof(Anchor) == sizeof(uint64_t), "Invalid anchor size");
  * Description: 
  *  Cache-line aligned descriptor of a superblock.
  *  Descriptors are arranged in desc region and *never* freed
+ *  SB Free list management adapted from:
+ *    https://github.com/parlab-tuwien/lockfree-linked-list.git
+ *   (C) Jesper Larsson Traff, May 2020
+ *   Improved lock-free linked list implementations
  */
 struct Descriptor {
     // free superblocks are linked by their descriptors
     RP_TRANSIENT atomic_pptr<Descriptor> next_free;
+    // prev_free links are approximate
+    RP_TRANSIENT atomic_pptr<Descriptor> prev_free;
     // used in partial descriptor list
     RP_TRANSIENT atomic_pptr<Descriptor> next_partial;
     // anchor; is reconstructed during recovery
